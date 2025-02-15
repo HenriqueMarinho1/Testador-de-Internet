@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Velocidade</title>
+</head>
+<body>
+    <h2>Teste de Velocidade da Internet</h2>
+    <button onclick="testarVelocidade()">Iniciar Teste</button>
+    <p id="resultado">Clique no botão para iniciar o teste.</p>
+
+    <script>
+        async function testarVelocidade() {
+            document.getElementById("resultado").innerText = "Testando...";
+
+            try {
+                //  Medir PING
+                let pingStart = performance.now();
+                await fetch("speedtest.php", { method: "HEAD" });
+                let pingTime = performance.now() - pingStart;
+
+                // Medir DOWNLOAD
+                let startTime = performance.now();
+                let fileSizeMB = 10; // Tamanho do arquivo em MB
+
+                await fetch("speedtest.php")
+                    .then(response => response.blob())
+                    .then(() => {
+                        let endTime = performance.now();
+                        let duration = (endTime - startTime) / 1000;
+                        let downloadSpeed = (fileSizeMB * 8) / duration; 
+
+                        document.getElementById("resultado").innerText = 
+                            `Ping: ${pingTime.toFixed(2)} ms\nDownload: ${downloadSpeed.toFixed(2)} Mbps`;
+                    });
+
+                // Medir UPLOAD
+                let file = new Blob([new Uint8Array(10 * 1024 * 1024)]);
+                let formData = new FormData();
+                let uploadStartTime = performance.now(); 
+
+                formData.append("file", file);
+                formData.append("start_time", uploadStartTime);
+
+                let uploadResponse = await fetch("speedtest.php", { method: "POST", body: formData });
+                let uploadData = await uploadResponse.json();
+
+                if (uploadData.upload_speed) {
+                    document.getElementById("resultado").innerText += `\nUpload: ${uploadData.upload_speed} Mbps`;
+                } else {
+                    document.getElementById("resultado").innerText += "\nErro ao medir upload.";
+                }
+
+            } catch (error) {
+                document.getElementById("resultado").innerText = "Erro ao testar velocidade.";
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
