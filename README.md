@@ -18,7 +18,7 @@ Este projeto implementa um simples **Speedtest** utilizando **PHP** e **HTML** p
 
 ### Requisitos
 
-- Um servidor com suporte a **PHP** (como o XAMPP, WAMP ou qualquer servidor compatível com PHP).
+- Um servidor com suporte a **PHP** (qualquer servidor compatível com PHP).
 - Navegador web para acessar a página HTML.
 
 ### Passos
