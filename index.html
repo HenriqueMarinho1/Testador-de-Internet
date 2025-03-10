@@ -1,62 +1,408 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html>
+<meta charset="UTF-8" />
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste de Velocidade</title>
-</head>
-<body>
-    <h2>Teste de Velocidade da Internet</h2>
-    <button onclick="testarVelocidade()">Iniciar Teste</button>
-    <p id="resultado">Clique no botão para iniciar o teste.</p>
+    <title>SpeedTest</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <script>
-        async function testarVelocidade() {
-            document.getElementById("resultado").innerText = "Testando...";
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(-45deg, #1e3c72, #2a5298, #4a148c, #880e4f);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
 
-            try {
-                //  Medir PING
-                let pingStart = performance.now();
-                await fetch("speedtest.php", { method: "HEAD" });
-                let pingTime = performance.now() - pingStart;
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
 
-                // Medir DOWNLOAD
-                let startTime = performance.now();
-                let fileSizeMB = 10; // Tamanho do arquivo em MB
+            50% {
+                background-position: 100% 50%;
+            }
 
-                await fetch("speedtest.php")
-                    .then(response => response.blob())
-                    .then(() => {
-                        let endTime = performance.now();
-                        let duration = (endTime - startTime) / 1000;
-                        let downloadSpeed = (fileSizeMB * 8) / duration; 
-
-                        document.getElementById("resultado").innerText = 
-                            `Ping: ${pingTime.toFixed(2)} ms\nDownload: ${downloadSpeed.toFixed(2)} Mbps`;
-                    });
-
-                // Medir UPLOAD
-                let file = new Blob([new Uint8Array(10 * 1024 * 1024)]);
-                let formData = new FormData();
-                let uploadStartTime = performance.now(); 
-
-                formData.append("file", file);
-                formData.append("start_time", uploadStartTime);
-
-                let uploadResponse = await fetch("speedtest.php", { method: "POST", body: formData });
-                let uploadData = await uploadResponse.json();
-
-                if (uploadData.upload_speed) {
-                    document.getElementById("resultado").innerText += `\nUpload: ${uploadData.upload_speed} Mbps`;
-                } else {
-                    document.getElementById("resultado").innerText += "\nErro ao medir upload.";
-                }
-
-            } catch (error) {
-                document.getElementById("resultado").innerText = "Erro ao testar velocidade.";
-                console.error(error);
+            100% {
+                background-position: 0% 50%;
             }
         }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            animation: slideIn 0.8s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            opacity: 0;
+            animation: fadeInUp 0.5s ease forwards;
+            cursor: pointer;
+        }
+
+        .card:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+
+        .card:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+
+        .card:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        .card:nth-child(4) {
+            animation-delay: 0.8s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .card p {
+            font-size: 1.1rem;
+            color: #ddd;
+        }
+
+        .loader {
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            border-top: 5px solid #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .result {
+            margin-top: 20px;
+        }
+
+        .result p {
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+
+        .button {
+            background: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            margin-top: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .button:hover {
+            background: #2980b9;
+        }
+
+        .button:active {
+            transform: scale(0.98);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        #body_inicial {
+            position: relative;
+            opacity: 1;
+            z-index: 1;
+        }
+
+        .active_ip #body_inicial,
+        .active_download #body_inicial,
+        .active_upload #body_inicial,
+        .active_latency #body_inicial {
+            position: absolute;
+            opacity: 0;
+            z-index: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #body_ip,
+        #body_download,
+        #body_upload,
+        #body_latency {
+            position: absolute;
+            opacity: 0;
+            z-index: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .active_inicial #body_inicial,
+        .active_ip #body_ip,
+        .active_download #body_download,
+        .active_upload #body_upload,
+        .active_latency #body_latency {
+            position: relative;
+            opacity: 1;
+            z-index: 1;
+        }
+
+        .button_inicial .button_t {
+            position: relative;
+            width: 29%;
+            height: 5%;
+            border-radius: 5px;
+            border: 0.75px dashed rgb(0, 0, 0);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.8s ease-in-out;
+        }
+
+        .but_t {
+            position: relative;
+            background: transparent;
+            border: transparent;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body id="body_t">
+    <div id="body_inicial" class="container">
+        <h1>Teste de Velocidade</h1>
+        <div class="loader" id="loader"></div>
+        <div class="result">
+            <div class="card">
+                <h4 id="button_ip" class="button_t but_t">IP Address</h4>
+                <p id="ip">-</p>
+            </div>
+            <div class="card">
+                <h4 id="button_download" class="button_t but_t">Download</h4>
+                <p id="download">-</p>
+            </div>
+            <div class="card">
+                <h4 id="button_upload" class="button_t but_t">Upload</h4>
+                <p id="upload">-</p>
+            </div>
+            <div class="card">
+                <h4 id="button_latency" class="button_t but_t">Latency</h4>
+                <p id="ping">-</p>
+            </div>
+        </div>
+        <button class="button" id="startButton">Iniciar Teste</button>
+    </div>
+    <div id="body_ip" class="container">
+        <h1>O que é o IP?</h1>
+        <div class="result">
+            <div class="card">
+                <h4>IP (Internet Protocol) é um protocolo de comunicação
+                    que permite a identificação e localização de dispositivos
+                    em uma rede, como a internet. Cada dispositivo conectado
+                    recebe um endereço IP único, que funciona como um "número
+                    de identificação" para que os dados sejam enviados e recebidos
+                    corretamente. Existem duas versões principais: IPv4
+                    (mais comum, com endereços no formato 192.168.1.1) e IPv6
+                    (com endereços mais longos, como 2001:0db8:85a3::8a2e:0370:7334),
+                    criado para suprir a demanda crescente por endereços.</h4>
+            </div>
+        </div>
+        <button class="button button_inicial">Voltar</button>
+    </div>
+    <div id="body_download" class="container">
+        <h1>O que é o DOWNLOAD?</h1>
+        <div class="result">
+            <div class="card">
+                <h4>Download é o processo de transferir dados (como arquivos,
+                    programas, músicas, vídeos ou documentos) de um servidor ou
+                    outro dispositivo para o seu computador, smartphone ou
+                    qualquer dispositivo conectado à internet. É como "baixar"
+                    informações da nuvem ou de outro local para o seu aparelho,
+                    permitindo que você acesse esses dados offline. Por exemplo,
+                    quando você baixa uma música ou um aplicativo, ele é copiado
+                    da internet para o seu dispositivo.</h4>
+            </div>
+        </div>
+        <button class="button button_inicial">Voltar</button>
+    </div>
+    <div id="body_upload" class="container">
+        <h1>O que é o UPLOAD?</h1>
+        <div class="result">
+            <div class="card">
+                <h4>Upload é o processo de enviar dados (como arquivos, fotos,
+                    vídeos ou documentos) do seu computador, smartphone ou outro
+                    dispositivo para um servidor ou outro destino na internet.
+                    É o oposto do download: em vez de "baixar" informações, você
+                    as "sobe" para a nuvem, um site ou outra plataforma. Por exemplo,
+                    quando você publica uma foto nas redes sociais ou envia um anexo
+                    por e-mail, está fazendo upload desse arquivo.</h4>
+            </div>
+        </div>
+        <button class="button button_inicial">Voltar</button>
+    </div>
+    <div id="body_latency" class="container">
+        <h1> O que é LATÊNCIA?</h1>
+        <div class="result">
+            <div class="card">
+                <h4>Latência é o tempo que leva para um pacote de dados trafegar de
+                    um ponto a outro em uma rede, como a internet. É basicamente o
+                    "atraso" ou o tempo de resposta entre o envio de uma informação
+                    e a recepção da resposta. Por exemplo, em jogos online, a latência
+                    afeta o tempo que leva para suas ações serem refletidas no jogo.
+                    Quanto menor a latência, mais rápida e responsiva é a conexão.
+                    Ela é medida em milissegundos (ms).</h4>
+            </div>
+        </div>
+        <button class="button button_inicial">Voltar</button>
+    </div>
+
+    <script type="text/javascript" src="speedtest.js"></script>
+    <script type="text/javascript">
+        var s = new Speedtest();
+        var loader = document.getElementById('loader');
+        var startButton = document.getElementById('startButton');
+
+        s.onupdate = function (data) {
+
+            loader.style.display = 'none';
+
+            document.getElementById('download').textContent = data.dlStatus + ' Mbit/s';
+            document.getElementById('upload').textContent = data.ulStatus + ' Mbit/s';
+            document.getElementById('ping').textContent = data.pingStatus + ' ms, ' + data.jitterStatus + ' ms jitter';
+            document.getElementById('ip').textContent = data.clientIp;
+
+            startButton.disabled = false;
+            startButton.textContent = "Iniciar Teste";
+            startButton.style.animation = "pulse 2s infinite";
+        }
+
+        s.onstart = function () {
+            loader.style.display = 'block';
+            startButton.disabled = true;
+            startButton.textContent = "Testando...";
+            startButton.style.animation = "none";
+        }
+
+        startButton.addEventListener('click', function () {
+            s.start();
+        });
+
+        function mudarTela(classe) {
+            const body_t = document.querySelector('body');
+            body_t.classList.remove("active_inicial", "active_ip", "active_download", "active_upload", "active_latency");
+            body_t.classList.add(classe);
+        }
+
+        const body_t = document.querySelector('body');
+        const button_inicials = document.querySelectorAll('.button_inicial');
+        const button_ip = document.getElementById('button_ip');
+        const button_download = document.getElementById('button_download');
+        const button_upload = document.getElementById('button_upload');
+        const button_latency = document.getElementById('button_latency');
+
+        button_inicials.forEach(button_inicial => {
+            button_inicial.addEventListener('click', () => {
+                mudarTela("active_inicial");
+            });
+        });
+
+        button_ip.addEventListener('click', () => mudarTela("active_ip"));
+        button_download.addEventListener('click', () => mudarTela("active_download"));
+        button_upload.addEventListener('click', () => mudarTela("active_upload"));
+        button_latency.addEventListener('click', () => mudarTela("active_latency"));
     </script>
 </body>
+
 </html>
